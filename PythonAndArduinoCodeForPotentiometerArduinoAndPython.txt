@@ -1,0 +1,73 @@
+import time
+import serial
+from vpython import *
+import numpy as np
+#ready to submit this to YouTube - better late than never but better never late
+arrowLength=1
+arrowWidth=.02
+myArrow=arrow(length=arrowLength,shaftwidth=arrowWidth,color=color.red,axis=vector(1,1,0))
+hubL=.03
+hubR=.03
+hub=cylinder(color=color.black,radius=hubR,length=hubL,axis=vector(0,0,1))
+ 
+tickL=.1
+tickW=.02
+tickH=.02
+ 
+for theta in np.linspace(5*np.pi/6,np.pi/6,6):
+    tickMajor=box(color=color.black,pos=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0),size=vector(tickL,tickW,tickH),axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0))
+tickFraction=.5
+for theta in np.linspace(5*np.pi/6,np.pi/6,51):
+    tickMinor=box(color=color.black,pos=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0),size=vector(tickFraction*tickL,tickFraction*tickW,tickFraction*tickH),axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0))
+cnt=0
+labF=1.1
+for theta in np.linspace(5*np.pi/6,np.pi/6,6):
+    lab=text(text=str(cnt),pos=vector(labF*arrowLength*np.cos(theta),labF*arrowLength*np.sin(theta),0),color=color.black,height=.1,align='center',axis=vector(arrowLength*np.cos(theta-np.pi/2),arrowLength*np.sin(theta-np.pi/2),0))
+    cnt=cnt+1 
+
+myLabel=text(text='Virtual Volt Meter',pos=vector(0,1.21,0), color=color.red, height=.1,align='center')
+
+boxX=2.5
+boxY=1.5
+boxZ=.1
+myCase=box(color=color.green,size=vector(boxX+.1,boxY+.1,boxZ-.1),pos=vector(0,.9*boxY/2,-boxZ))
+myCase=box(color=color.white,size=vector(boxX-.05,boxY-.05,boxZ),pos=vector(0,.9*boxY/2,-boxZ))
+myCase=box(color=color.white,size=vector(boxX,boxY,boxZ/2),pos=vector(0,.9*boxY/2,-boxZ+.1),opacity = .02)
+ 
+arduinoData=serial.Serial('com3',115200)
+time.sleep(1)
+while True:
+    while arduinoData.in_waiting==0:
+        pass
+    dataPacket=arduinoData.readline()
+    dataPacket=str(dataPacket,'utf-8')
+    dataPacket=dataPacket.strip('\r\n')
+    dataPacket=int(dataPacket)
+    potVal=dataPacket
+    theta=-2*np.pi/3069*potVal+5*np.pi/6
+    myArrow.axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0)
+ 
+    # for theta in np.linspace(5*np.pi/6,np.pi/6,150):
+    #     rate(25)
+    #     myArrow.axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0)
+    
+    # for theta in np.linspace(np.pi/6,5*np.pi/6,150):
+    #     rate(25)
+    #     myArrow.axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0)
+
+#     Arduino Program to use with this - just potentiometer and 5 volt and ground and A3 to other side of potentiometer
+#     int potPin=A3;
+# int DL=100;
+# int potVal;
+# void setup() {
+#   // put your setup code here, to run once:
+# pinMode(potPin,INPUT);
+# Serial.begin(115200);
+# }
+
+# void loop() {
+#   // put your main code here, to run repeatedly:
+# potVal=analogRead(potPin);
+# Serial.println(potVal);
+# delay(DL);
+# }

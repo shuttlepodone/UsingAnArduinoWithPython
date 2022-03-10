@@ -1,3 +1,5 @@
+#Arduino code is in this location and is named dht11minimumInfoNoWords.ino
+
 import time
 import serial
 from vpython import *

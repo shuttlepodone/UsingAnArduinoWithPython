@@ -1,0 +1,107 @@
+import time
+import serial
+from vpython import *
+import numpy as np
+
+def tempDanger():
+    while True:
+        tempSphereLight.visible=True
+        rate(500)
+        tempSphereLight.visible=False
+        rate(500)
+
+
+
+arduinoData=serial.Serial('com3',115200)
+time.sleep(.5)
+
+scene.center=vector(5,0,0)
+scene.width=1000
+scene.height=600
+scene.append_to_title ('ShuttlePodOne Engineering Inc.')
+scene.append_to_caption ('United Federation of Planets Official Contractor')
+
+boxX=10
+boxY=6
+boxZ=.2
+offsetRight=boxX/2+2
+
+myCase=box(size=vector(boxX,boxY,boxZ),color=color.white,pos=vector(offsetRight,0,-boxZ/2))
+
+clearboxX=10
+clearboxY=6
+clearboxZ=.05
+clearoffsetRight=clearboxX/2+2
+myCaseClear=box(size=vector(clearboxX,clearboxY,clearboxZ),color=color.yellow,pos=vector(clearoffsetRight,0,clearboxZ/2+.35),opacity=.1)
+
+arrowLength=boxY-2
+arrowThickness=.1
+arrowZoff=.25
+myArrow=arrow(length=arrowLength,color=color.red,shaftwidth=arrowThickness,pos=vector(offsetRight,-.9*boxY/2,arrowZoff))
+
+#tempCylLight=cylinder(radius=.6,color=color.black,axis=vector(0,0,1),length=.1,pos=vector(offsetRight,1.4*boxY/2,arrowZoff-.24))
+tempSphereLight=sphere(radius=.6,color=color.black,pos=vector(0,1.4*boxY/2,0))
+humSphereLight=sphere(radius=.6,color=color.white,pos=vector(offsetRight,1.4*boxY/2,arrowZoff-.24))
+
+tickL=.4
+tickW=.07
+tickH=.07
+tickF=.7
+for theta in np.linspace(5*np.pi/6,np.pi/6,11):
+    tickMajor=box(pos=vector(1.1*arrowLength*np.cos(theta)+offsetRight,1.1*arrowLength*np.sin(theta)-.9*boxY/2,0),size=vector(tickL,tickW,tickH),color=color.black,axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0))
+for theta in np.linspace(5*np.pi/6,np.pi/6,51):
+    tickMinors=box(pos=vector(1.1*arrowLength*np.cos(theta)+offsetRight,1.1*arrowLength*np.sin(theta)-.9*boxY/2,0),size=vector(tickF*tickL,tickF*tickW,tickF*tickH),color=color.black,axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0))
+
+num=0
+for theta in np.linspace(5*np.pi/6,np.pi/6,11):
+    lab=text(text=str(num),pos=vector(1.2*arrowLength*np.cos(theta)+offsetRight,1.2*arrowLength*np.sin(theta)-.9*boxY/2,0),axis=vector(arrowLength*np.cos(theta-np.pi/2),arrowLength*np.sin(theta-np.pi/2),0),color=color.black,height=.4,align='center')
+    num=num+10
+
+digValue=label(text='50',height=20,box=False,pos=vector(1,-2.5,2))
+bulb=sphere(radius=1,color=color.red,pos=vector(0,-3,0))
+cyl=cylinder(radius=.6,color=color.red,axis=vector(0,1,0),length=6,pos=vector(0,-3,0))
+bulbGlass=sphere(radius=1.2,color=color.white,opacity=.25,pos=vector(0,-3,0))
+cylGlass=cylinder(radius=.8,color=color.white,axis=vector(0,1,0),opacity=.25,length=6,pos=vector(0,-3,0))
+for temp in range(0,115,10):
+    tickPos=4.5/115*temp+1.5
+    tick=cylinder(radius=.7,color=color.black,length=.1,axis=vector(0,1,0),pos=vector(0,tickPos-3,0))
+    label=text(text=str(temp),color=color.white,pos=vector(-2,tickPos-3,0),height=.3)
+while True:
+    while arduinoData.in_waiting==0:
+        pass
+    dataPacket=arduinoData.readline()
+    dataPacket=str(dataPacket,'utf-8')
+    dataPacket=dataPacket.strip('\r\n')
+    dataPacket=dataPacket.split(',')
+    temp=float(dataPacket[0])
+    temp=90
+    hum=float(dataPacket[1])
+    hum=90
+    len=(4.5/115)*temp+1.5
+    cyl.length=len
+    digValue.text=str(temp)
+    theta=-np.pi/150*hum+5*np.pi/6
+    myArrow.axis=vector(arrowLength*np.cos(theta),arrowLength*np.sin(theta),0)
+    #print ('temperature = ',temp)
+    if min(65, 67) < temp < max(65, 67):
+        tempSphereLight.color=color.green
+    if min(64, 65) <= temp <= max(64, 65):
+        tempSphereLight.color=color.yellow
+    if min(67, 69) <= temp <=max(67, 69):
+        tempSphereLight.color=color.yellow
+    if temp <64 or temp >69:
+        tempSphereLight.color=color.red
+        tempDanger()
+
+    if min(44, 46) < hum < max(44, 46):
+        humSphereLight.color=color.green
+    if min(43, 44) <= hum <= max(43, 44):
+        humSphereLight.color=color.yellow
+    if min(46, 47) <= hum <=max(46, 47):
+        humSphereLight.color=color.yellow
+    if hum <43 or hum >47:
+        humSphereLight.color=color.red
+
+
+ 
+
